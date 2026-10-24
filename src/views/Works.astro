@@ -1,0 +1,93 @@
+---
+import Base from '../layouts/Base.astro';
+import { t, href, formatDate, type Lang } from '../i18n';
+import { works } from '../works';
+import { site } from '../site';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const s = t(lang);
+const poems = works.filter((w) => w.kind === 'poem');
+const prose = works.filter((w) => w.kind === 'prose');
+---
+<Base lang={lang} path="/works" title={s.works}>
+  <div class="page">
+    <header class="page-head">
+      <h1>{s.works}</h1>
+      <p>{s.from}</p>
+    </header>
+
+    <section aria-labelledby="poetry">
+      <h2 id="poetry" class="mono section">{s.poetry}</h2>
+      <ol class="list">
+        {poems.map((w, i) => (
+          <li>
+            <span class="mono num">{String(i + 1).padStart(2, '0')}</span>
+            <div class="body">
+              <a class="title" href={href(lang, `/works/${w.slug}`)}>{w.title}</a>
+              <p class="mono meta">{w.venue}{w.issue ? ` ${w.issue}` : ''} · {formatDate(w.date, lang)}</p>
+              <p class="line">“{w.lines[0]}”</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <h3 class="mono section small">{s.alsoIn}</h3>
+      <ul class="also">
+        {site.alsoIn.map((p) => (
+          <li>
+            {p.url ? <a href={p.url}>{p.venue}</a> : <span>{p.venue}</span>}
+            <span class="mono"> · {p.note[lang]}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="prose" class="prose-section">
+      <h2 id="prose" class="mono section">{s.prose}</h2>
+      {prose.length ? (
+        <ol class="list">
+          {prose.map((w, i) => (
+            <li>
+              <span class="mono num">{String(i + 1).padStart(2, '0')}</span>
+              <div class="body">
+                <a class="title" href={href(lang, `/works/${w.slug}`)}>{w.title}</a>
+                <p class="mono meta">{w.venue} · {formatDate(w.date, lang)}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p class="soon">{s.proseSoon}</p>
+      )}
+    </section>
+  </div>
+</Base>
+
+<style>
+  .section { margin: 0 0 18px; font-size: 0.8125rem; }
+  .section.small { margin-top: 40px; }
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 8px;
+    padding: 22px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .list li:last-child { border-bottom: 1px solid var(--rule); }
+  .num { font-size: 1.75rem; font-family: var(--serif); color: var(--muted); letter-spacing: 0; line-height: 1; }
+  .title {
+    font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+    line-height: 1.15;
+    font-style: italic;
+    text-decoration: none;
+  }
+  .title:hover { text-decoration: underline; }
+  .meta { margin: 6px 0 8px; }
+  .line { margin: 0; color: var(--muted); max-width: 52ch; }
+  .also { list-style: none; padding: 0; margin: 0; }
+  .also li { padding: 4px 0; }
+  .prose-section { margin-top: 72px; }
+  .soon { font-style: italic; color: var(--muted); }
+</style>

@@ -1,0 +1,46 @@
+---
+// Papers and art: simple pages that say "coming soon" until there is something to show.
+import Base from '../layouts/Base.astro';
+import { t, type Lang } from '../i18n';
+import { site } from '../site';
+
+interface Props { lang: Lang; kind: 'papers' | 'art'; }
+const { lang, kind } = Astro.props;
+const s = t(lang);
+const papers = kind === 'papers' ? site.papers : [];
+---
+<Base lang={lang} path={`/${kind}`} title={s[kind]}>
+  <div class="page">
+    <header class="page-head">
+      <h1>{s[kind]}</h1>
+      <p>{kind === 'papers' ? s.papersIntro : s.artIntro}</p>
+    </header>
+
+    {papers.length ? (
+      <ol class="papers">
+        {papers.map((p) => (
+          <li>
+            <h2>{p.title}</h2>
+            <p class="mono">{[p.where, p.year].filter(Boolean).join(' · ')}</p>
+            {p.abstract && <p>{p.abstract[lang]}</p>}
+            {p.pdf && <a class="mono" href={p.pdf}>{s.pdf} ↓</a>}
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty">
+        <span class="ink-art shell" aria-hidden="true" style={`-webkit-mask-image:url(/images/${kind === 'papers' ? 'bosphorus' : 'nautilus'}-ink.webp);mask-image:url(/images/${kind === 'papers' ? 'bosphorus' : 'nautilus'}-ink.webp)`}></span>
+        <p>{kind === 'papers' ? s.papersSoon : s.artSoon}</p>
+      </div>
+    )}
+  </div>
+</Base>
+
+<style>
+  .papers { list-style: none; padding: 0; margin: 0; }
+  .papers li { padding: 24px 0; border-top: 1px solid var(--rule); }
+  .papers h2 { font-weight: 400; font-style: italic; margin: 0 0 6px; font-size: 1.6rem; }
+  .empty { display: grid; justify-items: center; gap: 20px; padding: 40px 0; text-align: center; }
+  .empty p { font-style: italic; color: var(--muted); margin: 0; }
+  .shell { width: 220px; aspect-ratio: 0.8; opacity: 0.4; }
+</style>

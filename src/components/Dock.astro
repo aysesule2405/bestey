@@ -1,0 +1,81 @@
+---
+import { t, href, type Lang } from '../i18n';
+import { site } from '../site';
+
+interface Props { lang: Lang; path: string; }
+const { lang, path } = Astro.props;
+const s = t(lang);
+
+const items = [
+  { key: 'works', label: s.works, to: '/works', icon: 'nautilus' },
+  site.show.papers && { key: 'papers', label: s.papers, to: '/papers', icon: 'map' },
+  site.show.art && { key: 'art', label: s.art, to: '/art', icon: 'sunflower' },
+  { key: 'about', label: s.about, to: '/about', icon: 'photo' },
+].filter(Boolean) as Array<{ key: string; label: string; to: string; icon: string }>;
+
+const isActive = (to: string) => path === to || path.startsWith(to + '/');
+---
+<nav class="dock" aria-label="Main">
+  <ul>
+    {items.map((item) => (
+      <li>
+        <a href={href(lang, item.to)} aria-current={isActive(item.to) ? 'page' : undefined}>
+          <span class:list={['icon', item.icon]} aria-hidden="true">
+            {item.icon === 'nautilus' && <span class="ink-art" style="-webkit-mask-image:url(/images/nautilus-ink.webp);mask-image:url(/images/nautilus-ink.webp)"></span>}
+            {item.icon === 'map' && <span class="ink-art" style="-webkit-mask-image:url(/images/bosphorus-ink.webp);mask-image:url(/images/bosphorus-ink.webp);-webkit-mask-size:220%;mask-size:220%;-webkit-mask-position:60% 40%;mask-position:60% 40%"></span>}
+            {item.icon === 'sunflower' && <img src="/images/sunflower.webp" alt="" />}
+            {item.icon === 'photo' && <img src="/images/beste-avatar.webp" alt="" />}
+          </span>
+          <span class="label">{item.label}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .dock {
+    position: fixed;
+    left: 50%;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 50;
+    background: var(--dock);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--rule);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    padding: 8px;
+  }
+  ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+  a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 72px;
+    padding: 8px 10px 6px;
+    border-radius: 15px;
+    text-decoration: none;
+    font-family: var(--serif);
+    font-size: 0.9375rem;
+    line-height: 1.1;
+    transition: background-color 0.2s ease;
+  }
+  a:hover { background: var(--paper-2); color: var(--ink); }
+  a[aria-current='page'] { background: var(--paper-2); }
+  a[aria-current='page'] .label { text-decoration: underline; text-underline-offset: 0.25em; }
+  .icon {
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(.3,1.6,.6,1);
+  }
+  a:hover .icon, a:focus-visible .icon { transform: translateY(-4px) rotate(-4deg); }
+  .icon .ink-art { width: 100%; height: 100%; display: block; }
+  .icon.map { background: var(--paper); border: 1px solid var(--rule); }
+  .icon.photo img { width: 100%; height: 100%; object-fit: cover; }
+  .icon.sunflower img { width: 115%; max-width: none; }
+</style>

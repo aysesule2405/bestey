@@ -1,0 +1,162 @@
+---
+// Lines from her poems wound into a slowly turning spiral, with a collage at the centre.
+// Purely visual: the same poems are listed as plain links next to it for keyboards and screen readers.
+import { t, type Lang } from '../i18n';
+import type { Work } from '../works';
+
+interface Props { lang: Lang; works: Work[]; linkFor: (w: Work) => string; }
+const { lang, works, linkFor } = Astro.props;
+const s = t(lang);
+
+// Interleave lines from each poem so neighbours come from different pieces.
+const pools = works.map((w) => w.lines.map((text) => ({ text, href: linkFor(w), title: w.title, venue: w.venue ?? '' })));
+const lines: typeof pools[number] = [];
+for (let i = 0; pools.some((p) => p[i]); i++) for (const p of pools) if (p[i]) lines.push(p[i]);
+
+// Archimedean spiral, from the centre outwards.
+const cx = 500, cy = 500, r0 = 168, r1 = 486, turns = 4.6;
+const total = turns * Math.PI * 2;
+const pts: string[] = [];
+for (let a = 0; a <= total; a += 0.04) {
+  const r = r0 + ((r1 - r0) * a) / total;
+  pts.push(`${(cx + r * Math.cos(a - Math.PI / 2)).toFixed(1)},${(cy + r * Math.sin(a - Math.PI / 2)).toFixed(1)}`);
+}
+const d = 'M' + pts.join(' L');
+---
+<figure class="spiral-wrap" data-lines={JSON.stringify(lines)}>
+  <svg class="spiral" viewBox="0 0 1000 1000" aria-hidden="true">
+    <defs><path id="spiral-path" d={d}></path></defs>
+    <g class="spin"><g class="lines"></g></g>
+  </svg>
+
+  <div class="collage" aria-hidden="true">
+    <span class="ink-art nautilus" style="-webkit-mask-image:url(/images/nautilus-ink.webp);mask-image:url(/images/nautilus-ink.webp)"></span>
+    <img class="sunflower" src="/images/sunflower.webp" alt="" />
+    <img class="budgie" src="/images/budgie.webp" alt="" />
+  </div>
+
+  <figcaption class="mono caption" aria-hidden="true">
+    <span class="hint">{s.spiralHint}</span>
+    <span class="from"></span>
+  </figcaption>
+</figure>
+
+<script>
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  async function build(wrap: HTMLElement) {
+    const data = JSON.parse(wrap.dataset.lines || '[]') as Array<{ text: string; href: string; title: string; venue: string }>;
+    const group = wrap.querySelector('.lines')!;
+    const path = wrap.querySelector('#spiral-path') as SVGPathElement;
+    const caption = wrap.querySelector('.from') as HTMLElement;
+    const hint = wrap.querySelector('.hint') as HTMLElement;
+    if (!data.length) return;
+    try { await document.fonts.ready; } catch {}
+
+    const length = path.getTotalLength();
+    let offset = 6;
+    let i = 0;
+    while (offset < length && i < data.length * 6) {
+      const line = data[i % data.length];
+      const a = document.createElementNS(SVGNS, 'a');
+      a.setAttribute('href', line.href);
+      a.setAttribute('tabindex', '-1');
+      const text = document.createElementNS(SVGNS, 'text');
+      const tp = document.createElementNS(SVGNS, 'textPath');
+      tp.setAttribute('href', '#spiral-path');
+      tp.setAttribute('startOffset', String(offset));
+      tp.textContent = line.text;
+      text.appendChild(tp);
+      a.appendChild(text);
+      group.appendChild(a);
+      offset += text.getComputedTextLength() + 34;
+
+      const show = () => {
+        hint.hidden = true;
+        caption.textContent = `${line.title}${line.venue ? ' · ' + line.venue : ''}`;
+        wrap.classList.add('is-reading');
+        a.classList.add('on');
+      };
+      const hide = () => { wrap.classList.remove('is-reading'); a.classList.remove('on'); };
+      a.addEventListener('mouseenter', show);
+      a.addEventListener('mouseleave', hide);
+      i++;
+    }
+    wrap.classList.add('ready');
+  }
+
+  document.querySelectorAll<HTMLElement>('.spiral-wrap').forEach(build);
+</script>
+
+<style>
+  .spiral-wrap {
+    position: relative;
+    margin: 0;
+    width: min(100%, 720px);
+    aspect-ratio: 1;
+  }
+  .spiral { width: 100%; height: 100%; overflow: visible; }
+  .spin {
+    transform-origin: 500px 500px;
+    animation: turn 420s linear infinite;
+  }
+  .spiral-wrap:hover .spin { animation-play-state: paused; }
+  @keyframes turn { to { transform: rotate(-360deg); } }
+
+  .spiral :global(text) {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 25px;
+    fill: var(--ink);
+    opacity: 0;
+    transition: fill 0.25s ease, opacity 0.25s ease;
+  }
+  .spiral-wrap.ready :global(text) { opacity: 0.82; animation: ink-in 1.6s ease both; }
+  .spiral-wrap.is-reading :global(text) { opacity: 0.32; }
+  .spiral-wrap.is-reading :global(a.on text) { opacity: 1; fill: var(--leaf); }
+  .spiral :global(a) { cursor: pointer; }
+  @keyframes ink-in { from { opacity: 0; } to { opacity: 0.82; } }
+
+  .collage {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 30%;
+    aspect-ratio: 0.8;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .collage .budgie {
+    position: absolute;
+    width: 74%;
+    left: 16%; top: 2%;
+    filter: drop-shadow(0 8px 14px rgba(40, 30, 10, 0.25));
+    animation: bob 7s ease-in-out infinite;
+  }
+  .collage .sunflower {
+    position: absolute;
+    width: 58%;
+    left: -12%; top: 34%;
+    transform: rotate(-12deg);
+    filter: drop-shadow(0 6px 10px rgba(40, 30, 10, 0.2));
+  }
+  .collage .nautilus {
+    position: absolute;
+    width: 48%; aspect-ratio: 1.08;
+    right: -14%; bottom: 0%;
+    transform: rotate(18deg);
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-6px) rotate(-1.5deg); }
+  }
+
+  .caption {
+    position: absolute;
+    left: 0; right: 0; top: -14px;
+    text-align: center;
+    min-height: 1.4em;
+  }
+  .caption .from { color: var(--leaf); }
+  @media (hover: none) { .caption .hint { display: none; } }
+  @media (max-width: 860px) { .caption { top: auto; bottom: -8px; } }
+</style>

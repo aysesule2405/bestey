@@ -1,0 +1,109 @@
+---
+import Base from '../layouts/Base.astro';
+import { t, href, formatDate, type Lang } from '../i18n';
+import { works, artImages, type Work } from '../works';
+
+interface Props { lang: Lang; work: Work; }
+const { lang, work } = Astro.props;
+const s = t(lang);
+const i = works.findIndex((w) => w.slug === work.slug);
+const prev = works[i - 1];
+const next = works[i + 1];
+const art = work.art ? artImages[work.art] : null;
+const venue = `${work.venue ?? ''}${work.issue ? ` ${work.issue}` : ''}`;
+---
+<Base lang={lang} path={`/works/${work.slug}`} title={work.title} description={work.lines[0]}>
+  <article class="page reading" lang="en">
+    {art && (
+      art.ink
+        ? <span class="art ink-art" aria-hidden="true" style={`-webkit-mask-image:url(${art.src});mask-image:url(${art.src})`}></span>
+        : <img class="art" src={art.src} alt="" />
+    )}
+
+    <header>
+      <p class="mono" lang={lang}><a href={href(lang, '/works')}>← {s.allWorks}</a></p>
+      <h1>{work.title}</h1>
+      {work.venue && (
+        <p class="mono meta" lang={lang}>
+          {s.publishedIn} <a href={work.venueUrl}>{venue}</a> · {formatDate(work.date, lang)}
+        </p>
+      )}
+    </header>
+
+    <div class:list={['text', { prose: work.form === 'prose' }]}>{work.body}</div>
+
+    {work.note && <p class="note">{work.note}</p>}
+
+    <footer lang={lang}>
+      {work.venueUrl && (
+        <p class="mono"><a href={work.venueUrl}>{s.readAt} {work.venue} →</a></p>
+      )}
+      <nav class="pager" aria-label={`${s.previous} / ${s.next}`}>
+        {prev ? <a href={href(lang, `/works/${prev.slug}`)}><span class="mono">← {s.previous}</span><span lang="en">{prev.title}</span></a> : <span></span>}
+        {next ? <a class="r" href={href(lang, `/works/${next.slug}`)}><span class="mono">{s.next} →</span><span lang="en">{next.title}</span></a> : <span></span>}
+      </nav>
+    </footer>
+  </article>
+</Base>
+
+<style>
+  .reading {
+    position: relative;
+    max-width: 720px;
+    padding-top: 40px;
+  }
+  .art {
+    position: absolute;
+    right: -220px;
+    top: 30px;
+    width: 230px;
+    aspect-ratio: 0.8;
+    object-fit: contain;
+    transform: rotate(6deg);
+    pointer-events: none;
+  }
+  img.art { filter: drop-shadow(0 8px 14px rgba(40, 30, 10, 0.2)); }
+  span.art { aspect-ratio: 1.08; opacity: 0.55; }
+  h1 {
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    line-height: 1.05;
+    margin: 28px 0 12px;
+  }
+  .meta { margin: 0 0 48px; }
+  .text {
+    white-space: pre-wrap;
+    font-size: 1.25rem;
+    line-height: 1.7;
+    overflow-wrap: break-word;
+  }
+  .text.prose { white-space: pre-line; text-align: left; max-width: 62ch; }
+  .note {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 60ch;
+  }
+  footer { margin-top: 64px; }
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+  }
+  .pager a { display: flex; flex-direction: column; gap: 4px; text-decoration: none; font-style: italic; }
+  .pager a:hover span:last-child { text-decoration: underline; }
+  .pager .r { text-align: right; align-items: flex-end; }
+
+  @media (max-width: 1180px) {
+    .art { position: relative; right: auto; top: auto; float: right; width: 120px; margin: 0 0 12px 16px; }
+  }
+  @media (max-width: 560px) {
+    .text { font-size: 1.125rem; }
+  }
+</style>

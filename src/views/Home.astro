@@ -1,0 +1,105 @@
+---
+import Base from '../layouts/Base.astro';
+import Spiral from '../components/Spiral.astro';
+import { t, href, formatDate, type Lang } from '../i18n';
+import { works } from '../works';
+import { site } from '../site';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const s = t(lang);
+const linkFor = (w: { slug: string }) => href(lang, `/works/${w.slug}`);
+---
+<Base lang={lang} path="/">
+  <div class="home">
+    <section class="intro">
+      <p class="hello">{lang === 'tr' ? 'merhaba,' : 'hello,'}</p>
+      <h1>
+        <span class="first">beste</span>
+        <span class="last">yılmaz</span>
+      </h1>
+      <p class="mono tag">{s.tagline}</p>
+      <p class="from">{s.from}</p>
+    </section>
+
+    <section class="stage" aria-label={s.spiralLabel}>
+      <Spiral lang={lang} works={works} linkFor={linkFor} />
+    </section>
+
+    <nav class="list" aria-label={s.works}>
+      <ol class="index">
+        {works.map((w, i) => (
+          <li>
+            <a href={linkFor(w)}>
+              <span class="mono num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="title">{w.title}</span>
+            </a>
+            <span class="mono venue">{w.venue}{w.issue ? ` ${w.issue}` : ''} · {formatDate(w.date, lang)}</span>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  </div>
+  <p class="mono updated">{s.lastUpdated} {site.lastUpdated.split('-').reverse().join('/')}</p>
+</Base>
+
+<style>
+  .home {
+    width: min(100% - 32px, 1240px);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.35fr);
+    grid-template-areas: 'intro stage' 'list stage';
+    grid-template-rows: auto 1fr;
+    column-gap: 24px;
+    min-height: calc(100vh - 90px);
+    padding-bottom: 130px;
+  }
+  .intro { grid-area: intro; align-self: end; padding-top: 32px; }
+  .list { grid-area: list; }
+  .hello {
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-weight: 400;
+    font-size: clamp(3.4rem, 8vw, 6.4rem);
+    line-height: 0.88;
+    letter-spacing: -0.02em;
+    margin: 0 0 30px;
+  }
+  h1 .first { display: block; }
+  h1 .last { display: block; font-style: italic; padding-left: 0.55em; color: var(--wood); }
+  .tag { margin: 0 0 6px; }
+  .from { margin: 0 0 36px; font-style: italic; color: var(--muted); max-width: 30ch; }
+
+  .index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); max-width: 440px; }
+  .index li { border-bottom: 1px solid var(--rule); padding: 10px 0; }
+  .index a { display: flex; gap: 14px; align-items: baseline; text-decoration: none; }
+  .index .title { font-size: 1.1875rem; }
+  .index a:hover .title { text-decoration: underline; }
+  .index .venue { display: block; padding-left: 38px; font-size: 0.75rem; }
+  .num { flex: none; width: 24px; }
+
+  .stage { grid-area: stage; display: grid; place-items: center; padding: 20px 0 60px; }
+  .stage :global(.spiral-wrap) { width: min(100%, 720px, calc(100vh - 190px)); }
+
+  .updated {
+    position: fixed;
+    right: 20px; bottom: 18px;
+    margin: 0;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    z-index: 10;
+  }
+
+  @media (max-width: 860px) {
+    .home { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'intro' 'stage' 'list'; grid-template-rows: auto; min-height: 0; padding-bottom: 40px; }
+    .intro { padding-top: 16px; }
+    .from { margin-bottom: 0; }
+    .stage { overflow: hidden; margin-inline: -16px; padding: 16px 0 48px; display: block; }
+    .stage :global(.spiral-wrap) { width: 122vw; margin-left: calc(50% - 61vw); }
+    .updated { position: static; text-align: center; padding-bottom: 120px; }
+  }
+</style>
