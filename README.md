@@ -60,9 +60,3 @@ Photos of Beste are in `public/images/`. The illustrations are public-domain pla
 - map of Constantinople and the Bosphorus, from *Constantinople and the Scenery of the Seven Churches of Asia Minor* (1839)
 
 `nautilus-ink.webp` and `bosphorus-ink.webp` contain only the ink lines. The site recolours them to fit light and dark mode.
-
-## Put it online (free)
-
-1. Push this folder to a GitHub repository.
-2. Go to vercel.com or netlify.com, choose "import from GitHub", and select the repository. The build settings (Astro, `npm run build`, `dist`) are detected automatically.
-3. Every push after that updates the site. A custom domain (for example besteyilmaz.com) costs about $10–15 a year. Once there is one, update `url` in `src/site.ts` and `site` in `astro.config.mjs`.
