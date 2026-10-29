@@ -45,7 +45,8 @@ Everything that isn't a poem is in `src/site.ts`:
 - `education`, `honors`, `roles`: the CV sections
 - `alsoIn`: publications that don't have their own page yet
 - `papers`: add entries here. Put the PDFs in `public/papers/`
-- `show.art`: set to `true` to put "art" in the menu
+- `art`: add pieces here. Put the images in `public/art/` and give each one an `alt` description in both languages
+- `show.art` / `show.papers`: set to `false` to hide that tab from the menu
 - `email`: fill this in to show a contact address
 
 Interface words like "works" or "about" are in `src/i18n.ts`, in both languages.

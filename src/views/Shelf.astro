@@ -8,6 +8,7 @@ interface Props { lang: Lang; kind: 'papers' | 'art'; }
 const { lang, kind } = Astro.props;
 const s = t(lang);
 const papers = kind === 'papers' ? site.papers : [];
+const art = kind === 'art' ? site.art : [];
 ---
 <Base lang={lang} path={`/${kind}`} title={s[kind]}>
   <div class="page">
@@ -27,6 +28,20 @@ const papers = kind === 'papers' ? site.papers : [];
           </li>
         ))}
       </ol>
+    ) : art.length ? (
+      <ul class="gallery">
+        {art.map((a, i) => (
+          <li style={`--tilt:${[-2, 1.5, -1, 2.5][i % 4]}deg`}>
+            <figure>
+              <img src={a.src} alt={a.alt[lang]} loading="lazy" />
+              <figcaption>
+                <span class="title">{a.title}</span>
+                <span class="mono">{[a.medium?.[lang], a.year].filter(Boolean).join(' · ')}</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
     ) : (
       <div class="empty">
         <span class="ink-art shell" aria-hidden="true" style={`-webkit-mask-image:url(/images/${kind === 'papers' ? 'bosphorus' : 'nautilus'}-ink.webp);mask-image:url(/images/${kind === 'papers' ? 'bosphorus' : 'nautilus'}-ink.webp)`}></span>
@@ -43,4 +58,16 @@ const papers = kind === 'papers' ? site.papers : [];
   .empty { display: grid; justify-items: center; gap: 20px; padding: 40px 0; text-align: center; }
   .empty p { font-style: italic; color: var(--muted); margin: 0; }
   .shell { width: 220px; aspect-ratio: 0.8; opacity: 0.4; }
+
+  .gallery {
+    list-style: none; padding: 0; margin: 0;
+    columns: 3 280px;
+    column-gap: 40px;
+  }
+  .gallery li { break-inside: avoid; margin-bottom: 48px; }
+  .gallery figure { margin: 0; transform: rotate(var(--tilt)); transition: transform 0.3s ease; }
+  .gallery li:hover figure { transform: rotate(0) scale(1.02); }
+  .gallery img { width: 100%; height: auto; border: 8px solid #fbf8f1; box-shadow: var(--shadow); }
+  .gallery figcaption { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
+  .gallery .title { font-style: italic; font-size: 1.125rem; }
 </style>

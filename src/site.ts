@@ -10,7 +10,7 @@ export const site = {
   // Sections that are still being gathered. Flip to true when ready.
   show: {
     papers: true, // page shows a "coming soon" note until papers are added below
-    art: false, // hidden from the menu until there is art to show
+    art: true, // shows "coming soon" until art is added
   },
 
   bio: {
@@ -89,4 +89,8 @@ export const site = {
 
   // Add papers here as { title, where, year, abstract: {en, tr}, pdf: '/papers/file.pdf' }
   papers: [] as Array<{ title: string; where?: string; year?: string; abstract?: { en: string; tr: string }; pdf?: string }>,
+
+  // Add art here as { src: '/art/file.jpg', title, year, medium: {en, tr}, alt: {en, tr} }
+  // Put the image files in public/art/. alt describes the piece for screen readers.
+  art: [] as Array<{ src: string; title: string; year?: string; medium?: { en: string; tr: string }; alt: { en: string; tr: string } }>,
 };
